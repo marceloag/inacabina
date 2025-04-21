@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CabinaFotos Inacabina</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="photo-booth">
+      <header>
+        <h1><i class="fas fa-camera-retro"></i> INACABINA</h1>
+      </header>
+
+      <main>
+        <div class="booth-container">
+          <div class="booth-frame">
+            <div class="camera-preview">
+              <div class="countdown-overlay" id="countdown">
+                <span id="countdown-number"></span>
+              </div>
+              <div class="flash-overlay" id="flash"></div>
+              <img id="preview-image" src="/css/ninias.png" alt="Foto previa" />
+            </div>
+
+            <div class="booth-controls">
+              <button id="capture-btn" class="pulse">
+                <i class="fas fa-camera"></i> Tomar Foto
+              </button>
+            </div>
+          </div>
+
+          <div class="photo-gallery">
+            <h2><i class="fas fa-images"></i> Galería de Fotos</h2>
+            <div id="photos-container" class="photos-grid">
+              <!-- Las fotos se cargarán aquí dinámicamente -->
+              <div class="loading">Cargando fotos...</div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer>
+        <p>CabinaFotos Pi &copy; 2025 | Powered by Raspberry Pi</p>
+      </footer>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
