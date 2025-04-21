@@ -11,6 +11,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const PHOTOS_DIR = path.join(__dirname, "photos");
 
+process.on("uncaughtException", (error) => {
+  console.error("Error no manejado:", error);
+});
+
 // Asegúrate de que exista el directorio de fotos
 if (!fs.existsSync(PHOTOS_DIR)) {
   fs.mkdirSync(PHOTOS_DIR);
@@ -53,32 +57,63 @@ app.post("/api/capture", (req, res) => {
   const filename = `photo_${timestamp}.jpg`;
   const outputPath = path.join(PHOTOS_DIR, filename);
 
-  // Primero reproducir el sonido "digan whiskey"
-  say.speak("Digan whiskey", null, 1.0, (err) => {
-    if (err) {
-      console.error("Error al reproducir audio:", err);
-    }
-
-    // Esperar un poco después del sonido
-    setTimeout(() => {
-      // Comando para capturar la foto usando raspistill
-      const command = `raspistill -o ${outputPath} -t 1000 -w 1280 -h 720 -n`;
-
-      exec(command, (error, stdout, stderr) => {
-        if (error) {
-          console.error(`Error al ejecutar raspistill: ${error}`);
-          return res.status(500).json({ error: "Error al tomar la foto" });
+  try {
+    // Comando para reproducir audio
+    console.log("Ejecutando comando de audio...");
+    exec(
+      'espeak "Digan whiskey" -s 130 -a 200',
+      (speakError, speakStdout, speakStderr) => {
+        if (speakError) {
+          console.error("Error al reproducir audio:", speakError);
+          console.error("stderr:", speakStderr);
         }
 
-        console.log(`Foto guardada en: ${outputPath}`);
-        res.json({
-          success: true,
-          filename: filename,
-          url: `/photos/${filename}`,
-        });
-      });
-    }, 1500); // Esperar 1.5 segundos después del sonido
-  });
+        console.log("Audio reproducido, esperando para tomar foto...");
+
+        // Esperar un poco después del sonido
+        setTimeout(() => {
+          try {
+            // Comando para capturar la foto
+            const command = `raspistill -o "${outputPath}" -t 1000 -w 1280 -h 720 -n`;
+            console.log("Ejecutando comando:", command);
+
+            exec(command, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Error al ejecutar raspistill:`, error);
+                console.error("stderr:", stderr);
+                return res.status(500).json({
+                  error: "Error al tomar la foto",
+                  details: error.message,
+                });
+              }
+
+              console.log(`Foto guardada en: ${outputPath}`);
+              res.json({
+                success: true,
+                filename: filename,
+                url: `/photos/${filename}`,
+              });
+            });
+          } catch (execError) {
+            console.error(
+              "Error al ejecutar el comando de la cámara:",
+              execError
+            );
+            res.status(500).json({
+              error: "Error interno al tomar la foto",
+              details: execError.message,
+            });
+          }
+        }, 1500);
+      }
+    );
+  } catch (outerError) {
+    console.error("Error general en el endpoint de captura:", outerError);
+    res.status(500).json({
+      error: "Error interno del servidor",
+      details: outerError.message,
+    });
+  }
 });
 
 // Iniciar el servidor
